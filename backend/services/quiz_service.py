@@ -2,7 +2,7 @@ from datetime import datetime
 from bson import ObjectId
 from db import quizzes_col, attempts_col, question_bank_col
 from services.profile_service import update_profile_after_attempt
-from services.adaptive_policy import decide_next_step
+from services.tutor_agent import run_tutor_agent
 
 WEIGHTS = {
     "basic": 1,
@@ -169,7 +169,14 @@ def submit_quiz(user_id: str, quiz_id: str, submitted_answers, time_taken_sec: i
         for topic, stats in topic_stats.items()
     }
 
-    decision = decide_next_step(score_percent=score, quiz_type=quiz_type)
+    agent_result = run_tutor_agent(
+        user_id=user_id,
+        lesson_id=lesson_id,
+        score=score,
+        quiz_type=quiz_type,
+        topic_accuracy=topic_accuracy,
+    )
+    decision = agent_result["decision"]
 
     attempt_doc = {
         "user_id": user_id,
